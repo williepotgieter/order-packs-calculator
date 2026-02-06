@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Packs Calculator</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  </head>
+  <body id="app">
+    <h1 class="text-success">Hello, {{ message }}</h1>
+    <script src="/assets/js/vue.global.js"></script>
+    <script>
+      const { createApp, ref } = Vue;
+
+      createApp({
+        setup() {
+          const message = ref("Vue World!");
+          return {
+            message,
+          };
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>
