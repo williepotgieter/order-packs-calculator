@@ -4,25 +4,214 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Order Packs Calculator</title>
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/daisyui.css" />
+    <script src="/assets/js/feather.min.js"></script>
   </head>
-  <body id="app" class="container">
-    <section>
-      <h1>Order Packs Calculator, {{ message }}</h1>
-    </section>
+  <body id="app" class="bg-gray-200 min-h-dvh flex">
+    <main class="container mx-auto px-4 grow flex justify-center items-center">
+      <div class="card bg-base-100 w-2/3 shadow-sm">
+        <div class="card-body flex flex-col gap-10">
+          <section>
+            <h1 class="text-4xl font-bold mb-8">Order Packs Calculator</h1>
+            <div
+              class="overflow-x-auto rounded-box border border-gray-200 bg-base-100 w-110"
+            >
+              <table class="table table-sm">
+                <thead class="bg-neutral text-white">
+                  <tr>
+                    <th class="text-center">Pack Size</th>
+                    <th class="w-40 pl-20">
+                      <span>Action</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(s, i) in packageSizes" :key="i">
+                    <td class="text-2xl text-center font-bold">{{ s }}</td>
+                    <td class="flex justify-end">
+                      <button
+                        @click="removePackageSize(i)"
+                        class="btn btn-outline btn-error w-22"
+                        :disabled="loading"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-center">
+                      <input
+                        v-model="size"
+                        type="number"
+                        placeholder="Enter pack size"
+                        class="input w-40 text-center"
+                        required
+                      />
+                    </td>
+                    <td class="flex gap-2 justify-end">
+                      <button
+                        @click="addPackageSize"
+                        class="btn btn-primary btn-square"
+                        :disabled="loading"
+                      >
+                        <i data-feather="plus"></i>
+                      </button>
+                      <button
+                        @click="clearSize"
+                        class="btn btn-outline btn-square"
+                        :disabled="!size"
+                      >
+                        <i data-feather="refresh-ccw"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section>
+            <h1 class="text-3xl font-bold mb-4">Calculate packs for order</h1>
+            <fieldset
+              class="fieldset border-black rounded-box border p-4 flex w-110 gap-2"
+            >
+              <legend class="fieldset-legend text-lg mx-1">Items</legend>
+              <div class="flex w-full gap-2">
+                <input
+                  v-model="items"
+                  type="number"
+                  class="input w-wide"
+                  placeholder="Enter total number of items"
+                />
+                <button
+                  @click="calculateOrderPacks"
+                  class="btn btn-primary"
+                  :disabled="packageSizes.length == 0"
+                >
+                  <span
+                    v-if="loading"
+                    class="loading loading-spinner loading-md"
+                  ></span>
+                  <span v-else>Calculate</span>
+                </button>
+              </div>
+            </fieldset>
+          </section>
+          <section>
+            <div
+              class="overflow-x-auto rounded-box border border-gray-200 bg-base-100"
+            >
+              <table class="table table-sm">
+                <thead class="bg-neutral text-white">
+                  <tr class="text-2xl text-end font-bold">
+                    <th class="text-center">Pack Size</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="calculatedData.length == 0">
+                    <td colspan="3">
+                      <p class="italic label">
+                        Enter pack sizes and item count details above before
+                        clicking on the "Calculate" button to perform the
+                        calculation.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr
+                    v-for="(row, idx) in calculatedData"
+                    :key="idx"
+                    class="text-2xl text-end font-bold"
+                  >
+                    <td class="text-center">{{ row.size }}</td>
+                    <td>{{ row.quantity }}</td>
+                    <td>{{ row.totalItems }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
 
+    <script src="/assets/js/tailwind.js"></script>
     <script src="/assets/js/vue.global.js"></script>
     <script>
       const { createApp, ref } = Vue;
 
       createApp({
         setup() {
-          const message = ref("Vue World!");
+          const size = ref(null);
+          const items = ref(null);
+          const packageSizes = ref([]);
+          const calculatedData = ref([]);
+          const loading = ref(false);
+
+          const clearCalculation = () => {
+            items.value = null;
+            calculatedData.value = [];
+          };
+
+          const clearSize = () => {
+            size.value = null;
+            clearCalculation();
+          };
+
+          const addPackageSize = () => {
+            if (!size.value) return;
+
+            packageSizes.value.push(size.value);
+            size.value = null;
+            clearCalculation();
+          };
+
+          const removePackageSize = (idx) => {
+            packageSizes.value.splice(idx, 1);
+            clearCalculation();
+          };
+
+          const calculateOrderPacks = async () => {
+            if (loading.value) return;
+
+            loading.value = true;
+
+            try {
+              const resp = await fetch("/api/v1/calculate-packs", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  text: "Buy milk",
+                }),
+              });
+
+              const data = await resp.json();
+              calculatedData.value = data.filter((row) => row.quantity > 0);
+            } catch (error) {
+              console.error(error);
+            } finally {
+              loading.value = false;
+            }
+          };
+
           return {
-            message,
+            size,
+            items,
+            packageSizes,
+            calculatedData,
+            loading,
+            addPackageSize,
+            removePackageSize,
+            clearSize,
+            calculateOrderPacks,
           };
         },
       }).mount("#app");
+    </script>
+    <script>
+      feather.replace();
     </script>
   </body>
 </html>
