@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/williepotgieter/order-packs-calculator/internal/adapters/http/api"
 	"github.com/williepotgieter/order-packs-calculator/internal/adapters/http/client"
 	"github.com/williepotgieter/order-packs-calculator/internal/core/ports"
 )
@@ -17,6 +18,9 @@ func NewAdapter() (ports.Server, error) {
 	if err := client.Setup(r); err != nil {
 		return nil, err
 	}
+
+	// Setup API
+	api.Setup(r)
 
 	return &adapter{
 		router: r,

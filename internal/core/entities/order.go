@@ -1,3 +1,3 @@
 package entities
 
-type Order map[PackSize]uint
+type Order map[uint]uint
