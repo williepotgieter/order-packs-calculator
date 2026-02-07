@@ -8,7 +8,14 @@ import (
 )
 
 func handleCalculatePacks(c *gin.Context) {
-	order, err := usecases.CalculateOrderPacks(500000, 23, 31, 53)
+	payload := new(calculatePacksRequest)
+
+	if err := c.Bind(payload); err != nil {
+		httpError(c, http.StatusBadRequest, "invalid request body", err)
+		return
+	}
+
+	order, err := usecases.CalculateOrderPacks(payload.Items, payload.Packs...)
 	if err != nil {
 		httpError(c, http.StatusInternalServerError, "error while calculating order packs", err)
 		return

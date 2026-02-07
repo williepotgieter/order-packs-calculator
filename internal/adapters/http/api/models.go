@@ -1,8 +1,8 @@
 package api
 
 type calculatePacksRequest struct {
-	Items uint   `json:"items"`
-	Packs []uint `json:"packs"`
+	Items uint   `json:"items" binding:"required,number"`
+	Packs []uint `json:"packs" binding:"required,dive,number"`
 }
 
 type packDetails struct {
