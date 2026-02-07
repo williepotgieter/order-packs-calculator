@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
-	"math"
 	"slices"
 
 	"github.com/williepotgieter/order-packs-calculator/internal/core/entities"
@@ -22,39 +21,63 @@ func CalculateOrderPacks(items uint, packSizes ...uint) (entities.Order, error) 
 
 	// Remove duplicate and zero packs
 	rawPacks := make(map[uint]bool)
-	uniquePacks := []uint{}
+	uniquePackSizes := []uint{}
 
 	for _, size := range packSizes {
 		if !rawPacks[size] && size > 0 {
 			rawPacks[size] = true
-			uniquePacks = append(uniquePacks, size)
+			uniquePackSizes = append(uniquePackSizes, size)
 		}
 	}
 
-	if len(uniquePacks) == 0 {
+	if len(uniquePackSizes) == 0 {
 		return nil, errors.New("pack sizes must contain at least one non-zero pack size")
 	}
 
 	// Sort unique pack sizes in descending order
-	slices.SortFunc(uniquePacks, func(a, b uint) int {
+	slices.SortFunc(uniquePackSizes, func(a, b uint) int {
 		return cmp.Compare(b, a)
 	})
 
-	fmt.Println("SORTED:", uniquePacks)
-
-	// Calculate packs
-	countPacks := func(i *uint, s uint) uint {
-		cnt := uint(math.Floor(float64(*i) / float64(s)))
-		*i = *i - (cnt * s)
-
-		return cnt
-	}
+	fmt.Println("UNIQUE SIZES:", uniquePackSizes)
 
 	order := make(entities.Order)
-	tmpItems := items
-	for _, pack := range uniquePacks {
-		order[pack] = countPacks(&tmpItems, pack)
+	unpackedItems := items
+	for _, packSize := range uniquePackSizes {
+		packs, overflow, err := createPacks(packSize, unpackedItems)
+		if err != nil {
+			return nil, err
+		}
+
+		order[packSize] = packs
+
+		if overflow == 0 {
+			break
+		}
+
+		unpackedItems = overflow
 	}
 
 	return order, nil
+}
+
+func createPacks(size, items uint) (packs []*entities.Pack, overflow uint, err error) {
+	if size == 0 || items == 0 {
+		return nil, 0, errors.New("size and items args must both be non-zero")
+	}
+
+	overflow = items
+	packs = []*entities.Pack{}
+	for overflow >= size {
+		p, err := entities.NewPack(size)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		overflow = p.Fill(overflow)
+
+		packs = append(packs, p)
+	}
+
+	return packs, overflow, nil
 }
