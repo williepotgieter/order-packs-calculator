@@ -30,14 +30,49 @@
                   </thead>
                   <tbody>
                     <tr v-for="(s, i) in packageSizes" :key="i">
-                      <td class="text-2xl text-center font-bold">{{ s }}</td>
-                      <td class="flex justify-end">
+                      <td v-if="i == editingSizeIndex" class="text-center">
+                        <input
+                          v-model="editedSize"
+                          type="number"
+                          class="input w-wide text-center"
+                          required
+                        />
+                      </td>
+                      <td v-else class="text-2xl text-center font-bold">
+                        {{ s }}
+                      </td>
+                      <td class="flex gap-2 justify-end">
                         <button
-                          @click="removePackageSize(i)"
-                          class="btn btn-outline btn-error w-22"
+                          v-if="i == editingSizeIndex"
+                          @click="updatePackageSize(i)"
+                          class="btn btn-outline btn-success btn-square"
                           :disabled="loading"
                         >
-                          Remove
+                          <i data-feather="check"></i>
+                        </button>
+                        <button
+                          v-else
+                          @click="editPackageSize(i)"
+                          class="btn btn-outline btn-info btn-square"
+                          :disabled="loading"
+                        >
+                          <i data-feather="edit"></i>
+                        </button>
+                        <button
+                          v-if="i == editingSizeIndex"
+                          @click="cancelEditPackageSize(i)"
+                          class="btn btn-outline btn-square"
+                          :disabled="loading"
+                        >
+                          <i data-feather="x"></i>
+                        </button>
+                        <button
+                          v-else
+                          @click="removePackageSize(i)"
+                          class="btn btn-outline btn-error btn-square"
+                          :disabled="loading"
+                        >
+                          <i data-feather="trash"></i>
                         </button>
                       </td>
                     </tr>
@@ -142,15 +177,17 @@
     <script src="/assets/js/tailwind.js"></script>
     <script src="/assets/js/vue.global.js"></script>
     <script>
-      const { createApp, ref, onMounted } = Vue;
+      const { createApp, ref, onMounted, nextTick } = Vue;
 
       createApp({
         setup() {
           const size = ref(null);
+          const editedSize = ref(null);
           const items = ref(null);
           const packageSizes = ref([]);
           const calculatedData = ref([]);
           const loading = ref(false);
+          const editingSizeIndex = ref(null);
 
           const clearCalculation = () => {
             items.value = null;
@@ -168,11 +205,49 @@
             packageSizes.value.push(size.value);
             size.value = null;
             clearCalculation();
+
+            nextTick(() => {
+              window.feather.replace();
+            });
           };
 
           const removePackageSize = (idx) => {
             packageSizes.value.splice(idx, 1);
             clearCalculation();
+
+            nextTick(() => {
+              window.feather.replace();
+            });
+          };
+
+          const editPackageSize = (idx) => {
+            editingSizeIndex.value = idx;
+            editedSize.value = packageSizes.value[idx];
+
+            nextTick(() => {
+              window.feather.replace();
+            });
+          };
+
+          const updatePackageSize = (idx) => {
+            packageSizes.value[idx] = editedSize.value;
+            editingSizeIndex.value = null;
+            editedSize.value = null;
+
+            clearCalculation();
+
+            nextTick(() => {
+              window.feather.replace();
+            });
+          };
+
+          const cancelEditPackageSize = (idx) => {
+            editingSizeIndex.value = null;
+            editedSize.value = null;
+
+            nextTick(() => {
+              window.feather.replace();
+            });
           };
 
           const calculateOrderPacks = async () => {
@@ -205,17 +280,24 @@
             }
           };
 
-          onMounted(async () => {
-            feather.replace();
+          onMounted(() => {
+            if (window.feather) {
+              window.feather.replace();
+            }
           });
 
           return {
             size,
+            editedSize,
             items,
             packageSizes,
             calculatedData,
             loading,
+            editingSizeIndex,
             addPackageSize,
+            editPackageSize,
+            updatePackageSize,
+            cancelEditPackageSize,
             removePackageSize,
             clearSize,
             calculateOrderPacks,
