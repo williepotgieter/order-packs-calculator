@@ -116,6 +116,7 @@
                 <div class="flex w-full gap-2">
                   <input
                     v-model="items"
+                    @input="changeCalculation"
                     type="number"
                     class="input w-wide"
                     placeholder="Enter total number of items"
@@ -280,6 +281,10 @@
             }
           };
 
+          const changeCalculation = () => {
+            if (calculatedData.value.length > 0) calculatedData.value = [];
+          };
+
           onMounted(() => {
             if (window.feather) {
               window.feather.replace();
@@ -301,6 +306,7 @@
             removePackageSize,
             clearSize,
             calculateOrderPacks,
+            changeCalculation,
           };
         },
       }).mount("#app");
