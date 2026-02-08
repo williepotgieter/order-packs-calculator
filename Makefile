@@ -1,9 +1,12 @@
 APP_NAME=packapp
 
-.PHONY: dev build-linux build-mac-intel build-mac-arm build-windows
+.PHONY: dev build-linux build-mac-intel build-mac-arm build-windows test
 
 dev:
 	docker compose up
+
+test:
+	go test -v ./...
 
 build-linux:
 	GOOS=linux GOARCH=amd64 go build -o bin/$(APP_NAME)-linux ./cmd/app/main.go
