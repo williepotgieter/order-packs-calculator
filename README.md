@@ -25,7 +25,7 @@ Once the application is running, the UI can be accessed by opening `http://local
 
 <p align="center">
 <img src="screenshot-1.png"
-  alt="Size Limit comment in pull request about bundle size changes">
+  alt="Screenshot 1">
 </p>
 
 ## Testing
@@ -47,38 +47,61 @@ Next, enter a package capacity in the input titled: *Enter pack size* and click 
 
 <p align="center">
 <img src="screenshot-2.png"
-  alt="Size Limit comment in pull request about bundle size changes">
+  alt="Screenshot 2">
 </p>
 
 When at least one pack size has been added, edit and delete buttons will become available for every item.
 
 <p align="center">
 <img src="screenshot-3.png"
-  alt="Size Limit comment in pull request about bundle size changes">
+  alt="Screenshot 3">
 </p>
 
 After updating the package size, click on the check icon to save or the cross icon to cancel.
 
 <p align="center">
 <img src="screenshot-4.png"
-  alt="Size Limit comment in pull request about bundle size changes">
+  alt="Screenshot 4">
 </p>
 
 Enter the total number of items that need to be shipped
 
 <p align="center">
 <img src="screenshot-5.png"
-  alt="Size Limit comment in pull request about bundle size changes">
+  alt="Screenshot 5">
 </p>
 
 Observe that the pack size, quantity and total number of items are now displayed in a table.
 
 <p align="center">
 <img src="screenshot-6.png"
-  alt="Size Limit comment in pull request about bundle size changes">
+  alt="Screenshot 6">
 </p>
 
-## Live app
+## Building the application
+Three different build commands have meen added to the `Makefile` for cross-compilation to
+
+### Windows
+```bash
+make build-windows
+```
+
+### Apple Mac (intel)
+```bash
+make build-mac-intel
+```
+
+### Apple Mac (Apple Silicon)
+```bash
+make build-mac-arm
+```
+
+### Linux
+```bash
+make build-linux
+```
+
+### Live app
 
 The application has been deployed to [DigitalOcean](https://www.digitalocean.com/) and can be viewed at:
 
