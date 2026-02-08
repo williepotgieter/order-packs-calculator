@@ -6,11 +6,13 @@ import (
 
 	"github.com/williepotgieter/order-packs-calculator/config"
 	"github.com/williepotgieter/order-packs-calculator/internal/adapters/http"
+	"go.uber.org/zap"
 )
 
 var (
-	cfg config.AppConfig
-	ctx context.Context
+	cfg    config.AppConfig
+	ctx    context.Context
+	logger *zap.Logger
 )
 
 func init() {
@@ -19,17 +21,23 @@ func init() {
 	ctx = context.Background()
 
 	if cfg, err = config.Load(ctx); err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
+	}
+
+	if cfg.Prod {
+		logger, _ = zap.NewProduction()
+	} else {
+		logger, _ = zap.NewDevelopment()
 	}
 }
 
 func main() {
-	server, err := http.NewAdapter(cfg)
+	server, err := http.NewAdapter(cfg, logger)
 	if err != nil {
-		log.Fatalln("unable to setup server:", err.Error())
+		logger.Fatal("unable to setup server", zap.Error(err))
 	}
 
 	if err := server.Run(); err != nil {
-		log.Fatalln("server experienced an error:", err.Error())
+		logger.Fatal("server experienced an error", zap.Error(err))
 	}
 }

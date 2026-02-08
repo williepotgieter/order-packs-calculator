@@ -1,13 +1,24 @@
 package api
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
-func httpError(c *gin.Context, code int, message string, err error) {
-	log.Printf("%s: %s\n", message, err.Error())
+func httpError(c *gin.Context, logger *zap.Logger, code int, message string, err error) {
+	var level zapcore.Level
+	switch {
+	case code > 399 && code < 500:
+		level = zap.WarnLevel
+	case code >= 500:
+		level = zap.ErrorLevel
+
+	default:
+		level = zap.DebugLevel
+	}
+
+	logger.Log(level, message, zap.Error(err))
 
 	c.JSON(code, gin.H{
 		"code":    code,

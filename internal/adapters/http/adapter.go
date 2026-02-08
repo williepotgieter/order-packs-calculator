@@ -2,12 +2,15 @@ package http
 
 import (
 	"fmt"
+	"time"
 
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/williepotgieter/order-packs-calculator/config"
 	"github.com/williepotgieter/order-packs-calculator/internal/adapters/http/api"
 	"github.com/williepotgieter/order-packs-calculator/internal/adapters/http/client"
 	"github.com/williepotgieter/order-packs-calculator/internal/core/ports"
+	"go.uber.org/zap"
 )
 
 type adapter struct {
@@ -15,12 +18,16 @@ type adapter struct {
 	cfg    config.AppConfig
 }
 
-func NewAdapter(cfg config.AppConfig) (ports.Server, error) {
+func NewAdapter(cfg config.AppConfig, logger *zap.Logger) (ports.Server, error) {
 	if cfg.Prod {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r := gin.Default()
+	r := gin.New()
+
+	// Middleware
+	r.Use(ginzap.Ginzap(logger, time.RFC3339, true))
+	r.Use(ginzap.RecoveryWithZap(logger, true))
 
 	// Setup client
 	if err := client.Setup(r); err != nil {
@@ -28,7 +35,7 @@ func NewAdapter(cfg config.AppConfig) (ports.Server, error) {
 	}
 
 	// Setup API
-	api.Setup(r)
+	api.Setup(r, logger)
 
 	return &adapter{
 		router: r,
