@@ -1,14 +1,14 @@
 package api
 
 type calculatePacksRequest struct {
-	Items uint   `json:"items" binding:"required,number"`
-	Packs []uint `json:"packs" binding:"required,dive,number"`
+	Items int   `json:"items" binding:"required,number"`
+	Packs []int `json:"packs" binding:"required,dive,number"`
 }
 
 type packDetails struct {
-	Size       uint `json:"size"`
-	Quantity   uint `json:"quantity"`
-	TotalItems uint `json:"totalItems"`
+	Size       int `json:"size"`
+	Quantity   int `json:"quantity"`
+	TotalItems int `json:"totalItems"`
 }
 
 type calculatePacksResponse []packDetails

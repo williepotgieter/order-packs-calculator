@@ -15,11 +15,7 @@ func handleCalculatePacks(c *gin.Context) {
 		return
 	}
 
-	order, err := usecases.CalculateOrderPacks(payload.Items, payload.Packs...)
-	if err != nil {
-		httpError(c, http.StatusInternalServerError, "error while calculating order packs", err)
-		return
-	}
+	order := usecases.CalculateOrderPacks(payload.Items, payload.Packs)
 
 	c.JSON(http.StatusOK, calculatePacksResponseFromDto(order))
 }

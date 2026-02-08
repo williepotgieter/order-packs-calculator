@@ -1,83 +1,70 @@
 package usecases
 
 import (
-	"cmp"
-	"errors"
-	"fmt"
+	"math"
 	"slices"
 
 	"github.com/williepotgieter/order-packs-calculator/internal/core/entities"
 )
 
-func CalculateOrderPacks(items uint, packSizes ...uint) (entities.Order, error) {
-
-	if items == 0 {
-		return nil, errors.New("number of items must be greater than zero")
-	}
-
-	if len(packSizes) == 0 {
-		return nil, errors.New("at least one pack size must be specified")
-	}
-
-	// Remove duplicate and zero packs
-	rawPacks := make(map[uint]bool)
-	uniquePackSizes := []uint{}
-
-	for _, size := range packSizes {
-		if !rawPacks[size] && size > 0 {
-			rawPacks[size] = true
-			uniquePackSizes = append(uniquePackSizes, size)
-		}
-	}
-
-	if len(uniquePackSizes) == 0 {
-		return nil, errors.New("pack sizes must contain at least one non-zero pack size")
-	}
-
-	// Sort unique pack sizes in descending order
-	slices.SortFunc(uniquePackSizes, func(a, b uint) int {
-		return cmp.Compare(b, a)
-	})
-
-	fmt.Println("UNIQUE SIZES:", uniquePackSizes)
-
-	order := make(entities.Order)
-	unpackedItems := items
-	for _, packSize := range uniquePackSizes {
-		packs, overflow, err := createPacks(packSize, unpackedItems)
-		if err != nil {
-			return nil, err
-		}
-
-		order[packSize] = packs
-
-		if overflow == 0 {
-			break
-		}
-
-		unpackedItems = overflow
-	}
-
-	return order, nil
+type pack struct {
+	count    int // how many packs needed to reach i
+	previous int // which pack was used last
 }
 
-func createPacks(size, items uint) (packs []*entities.Pack, overflow uint, err error) {
-	if size == 0 || items == 0 {
-		return nil, 0, errors.New("size and items args must both be non-zero")
+func CalculateOrderPacks(items int, packSizes []int) entities.Order {
+	slices.Sort(packSizes)
+
+	limit := items + packSizes[len(packSizes)-1]
+
+	// dp[i] = best way to reach exactly i items
+	dp := make([]pack, limit+1)
+	for i := range dp {
+		dp[i] = pack{
+			count:    math.MaxInt32,
+			previous: -1,
+		}
 	}
 
-	overflow = items
-	packs = []*entities.Pack{}
-	for overflow >= size {
-		p, err := entities.NewPack(size)
-		if err != nil {
-			return nil, 0, err
+	dp[0] = pack{
+		count: 0,
+	}
+
+	// Build all reachable totals
+	for i := 0; i <= limit; i++ {
+		if dp[i].count == math.MaxInt32 {
+			continue // unreachable
 		}
 
-		overflow = p.Fill(overflow)
-
-		packs = append(packs, p)
+		for _, p := range packSizes {
+			next := i + p
+			if next <= limit && dp[i].count+1 < dp[next].count {
+				dp[next].count = dp[i].count + 1
+				dp[next].previous = p
+			}
+		}
 	}
 
-	return packs, overflow, nil
+	// Pick the best total ≥ order
+	bestTotal := -1
+	for i := items; i <= limit; i++ {
+		if dp[i].count == math.MaxInt32 {
+			continue
+		}
+		if bestTotal == -1 ||
+			i < bestTotal ||
+			(i == bestTotal && dp[i].count < dp[bestTotal].count) {
+			bestTotal = i
+		}
+	}
+
+	// Reconstruct packs
+	result := make(entities.Order)
+	for curr := bestTotal; curr > 0; {
+		p := dp[curr].previous
+		result[p]++
+		curr -= p
+	}
+
+	return result
 }
