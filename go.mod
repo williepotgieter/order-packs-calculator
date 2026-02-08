@@ -2,7 +2,10 @@ module github.com/williepotgieter/order-packs-calculator
 
 go 1.25.1
 
-require github.com/gin-gonic/gin v1.11.0
+require (
+	github.com/gin-gonic/gin v1.11.0
+	github.com/sethvargo/go-envconfig v1.3.0
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect

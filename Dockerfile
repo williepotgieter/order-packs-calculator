@@ -22,6 +22,6 @@ COPY --from=builder --chown=appuser:appuser /app/packapp /app/packapp
 
 USER appuser
 
-EXPOSE 3000
+EXPOSE $API_PORT
 
 ENTRYPOINT ["/app/packapp"]
