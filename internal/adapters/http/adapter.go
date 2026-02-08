@@ -18,6 +18,7 @@ type adapter struct {
 	cfg    config.AppConfig
 }
 
+// NewAdapter creates a new HTTP adapter responsible for handing both the server and client handlers
 func NewAdapter(cfg config.AppConfig, logger *zap.Logger) (ports.Server, error) {
 	if cfg.Prod {
 		gin.SetMode(gin.ReleaseMode)

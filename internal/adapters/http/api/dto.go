@@ -4,6 +4,7 @@ import (
 	"github.com/williepotgieter/order-packs-calculator/internal/core/entities"
 )
 
+// calculatePacksResponseFromDto transforms an Order domain object to a calculatePacksResponse model
 func calculatePacksResponseFromDto(dto entities.Order) calculatePacksResponse {
 	resp := calculatePacksResponse{}
 
